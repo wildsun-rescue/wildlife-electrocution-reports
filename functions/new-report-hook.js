@@ -59,6 +59,7 @@ const shorten = (url) => new Promise((resolve) => {
 
 app.all('*', async (req, res) => {
   if (req.query.auth !== STATIC_AUTH_TOKEN) {
+    console.error('Unauthorized')
     res.status(404)
     return
   }

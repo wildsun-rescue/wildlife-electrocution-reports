@@ -30,7 +30,7 @@ describe('new-report-hook', () => {
   it('returns successfully', async () => {
     await new Promise((resolve, reject) => {
       request.post({
-        url: `http://localhost:34567/new-report-hook/?auth=${auth}`,
+        url: `http://localhost:34567/new-report-hook?auth=${auth}`,
         formData: body,
       })
     })
