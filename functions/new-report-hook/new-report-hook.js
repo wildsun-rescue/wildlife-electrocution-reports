@@ -6,7 +6,6 @@ const multer = require('multer')
 const deline = require('deline')
 const Twilio = require('twilio')
 const isgd = require('isgd')
-// const { google } = require('googleapis')
 const GoogleSpreadsheet = require('google-spreadsheet')
 
 const {
@@ -17,16 +16,11 @@ const {
   GOOGLE_CREDENTIALS,
   GOOGLE_SPREADSHEET_ID,
 } = process.env
-//
-// const sheets = google.sheets('v4', {
-//   auth: GOOGLE_API_KEY,
-// })
 
 const pages = {
   instructions: 1,
-  mapData: 2,
-  formSubmissions: 3,
-  managers: 4,
+  formSubmissions: 2,
+  managers: 3,
 }
 
 const app = express()
@@ -39,7 +33,6 @@ const getSheet = async () => {
 
   // see notes below for authentication instructions!
   var creds = JSON.parse(GOOGLE_CREDENTIALS)
-  console.log(creds)
 
   await Promise.promisify(sheet.useServiceAccountAuth)(creds)
 
@@ -48,13 +41,15 @@ const getSheet = async () => {
 
 const getManagers = async ({ row, sheet }) => {
   const managerRows = await Promise.promisify(sheet.getRows)(pages.managers)
-  console.log(managerRows)
-  return JSON.parse(MANAGER_PHONE_NUMBERS)
+
+  return managerRows
+    .filter(row => row.active.trim() === 'Y')
+    .map(row => row.cellphone.trim())
+    .filter(cellphone => cellphone.length > 0)
 }
 
 const updateSpreadsheet = async ({ row, sheet }) => {
-  console.log('APPENDING ROW', row)
-
+  // console.log('APPENDING ROW', row)
   await Promise.promisify(sheet.addRow)(pages.formSubmissions, row)
 }
 
@@ -110,9 +105,11 @@ app.all('*', async (req, res) => {
     `https://maps.google.com/maps?q=${coords[0]},${coords[1]}`
   )
 
+  console.log('Connecting to Google Sheets')
   const sheet = await getSheet()
 
   const row = {
+    confirmed: 'N',
     submissiondate: new Date().toISOString(),
     gpscoordinates: coords.join(', '),
     map,
@@ -131,7 +128,9 @@ app.all('*', async (req, res) => {
     ip: req.body.ip,
   }
 
+  console.log('Adding Form Data')
   await updateSpreadsheet({ row, sheet })
+  console.log('Getting Managers')
   const managers = await getManagers({ row, sheet })
 
   const smsMessage = deline`
@@ -153,6 +152,7 @@ app.all('*', async (req, res) => {
 
   const twilio = Twilio(TWILLIO_SID, TWILLIO_AUTH_TOKEN)
 
+  console.log('Sending Texts')
   await Promise.all(
     managers.map(managerPhoneNumber =>
       twilio.messages.create({
@@ -163,6 +163,7 @@ app.all('*', async (req, res) => {
     )
   )
 
+  console.log('Done')
   return { statusCode: 200, body: '' }
 })
 

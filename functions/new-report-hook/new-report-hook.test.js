@@ -24,11 +24,13 @@ const body = {
   rawRequest: JSON.stringify(json),
 }
 
+const auth = process.env.STATIC_AUTH_TOKEN
+
 describe('new-report-hook', () => {
   it('returns successfully', async () => {
     await new Promise((resolve, reject) => {
       request.post({
-        url: 'http://localhost:34567/new-report-hook/',
+        url: `http://localhost:34567/new-report-hook/?auth=${auth}`,
         formData: body,
       })
     })
