@@ -93,7 +93,7 @@ app.all('*', async (req, res) => {
 
   const fullname = `${name.first} ${name.last}`
 
-  const phoneNumber = (
+  const phoneNumber = phoneObj.phone.length === 0 ? '' : (
     `(${phoneObj.area}) `
     + `${phoneObj.phone.slice(0, 3)}-${phoneObj.phone.slice(3)}`
   )
