@@ -6,7 +6,7 @@ This is the source code for the wildsun wildlife electrocution reporting netlify
 
 1. Install NodeJS and Netlify
 2. Git Clone this repo and run `yarn`
-3. Run `netlify dev`
+3. Run `yarn dev`
 
 The new report hook is now available at:
 
@@ -16,7 +16,7 @@ http://localhost:34567/new-report-hook?auth=YOUR_AUTH_TOKEN
 
 ###  Integration Test
 
-Once `netlify dev` is started run:
+Once `yarn dev` is started run:
 
 `STATIC_AUTH_TOKEN=YOUR_AUTH_TOKEN yarn test`
 

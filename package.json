@@ -6,7 +6,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "test": "jest ."
+    "test": "jest .",
+    "dev": "NODE_ENV=development netlify dev"
   },
   "jest": {
     "testEnvironment": "node"

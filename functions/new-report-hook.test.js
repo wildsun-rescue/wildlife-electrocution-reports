@@ -12,7 +12,7 @@ const body = {
   type: 'WEB'
 }
 
-const auth = process.env.STATIC_AUTH_TOKEN
+const auth = '123'
 
 describe('new-report-hook', () => {
   it('returns successfully', async () => {

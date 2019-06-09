@@ -15,7 +15,10 @@ const {
   TWILLIO_PHONE_NUMBER,
   GOOGLE_CREDENTIALS,
   GOOGLE_SPREADSHEET_ID,
+  NODE_ENV,
 } = process.env
+
+const authToken = NODE_ENV === 'development' ? '123' : STATIC_AUTH_TOKEN
 
 const pages = {
   instructions: 1,
@@ -58,7 +61,7 @@ const shorten = (url) => new Promise((resolve) => {
 })
 
 app.all('*', async (req, res) => {
-  if (req.query.auth !== STATIC_AUTH_TOKEN) {
+  if (req.query.auth !== authToken) {
     console.error('Unauthorized')
     res.status(404)
     return
@@ -66,11 +69,13 @@ app.all('*', async (req, res) => {
 
   await Promise.promisify(upload)(req, res)
 
-  const json = Object.fromEntries(
-    Object.entries(
-      JSON.parse(req.body.rawRequest)
-    ).map(([k, v]) => [k.replace(/(^q[0-9]+|[0-9]+$)/g, '')])
-  )
+  const unformattedJSON = JSON.parse(req.body.rawRequest)
+
+  const json = Object.entries(unformattedJSON).reduce((acc, [k, v]) => {
+    const formattedKey = k.replace(/(^q[0-9]+_|[0-9]+$)/g, '')
+    acc[formattedKey] = v
+    return acc
+  }, {})
 
   // delete req.body['rawRequest']
   // delete json['q9_photoOf9']
@@ -88,12 +93,12 @@ app.all('*', async (req, res) => {
   } = req.body
 
   const {
-    coordinatesString,
+    whereIs: coordinatesString,
     phoneNumber: phoneObj,
     email: email,
     yourName: name,
     whatIs: electricalPostNumber,
-    nearestBusiness: nearestBuisness,
+    nearestBusiness,
     descriptionOf: description,
     animalSpecies: species,
   } = json
@@ -129,7 +134,7 @@ app.all('*', async (req, res) => {
     firstname: name.first,
     lastname: name.last,
     electricalpostnumber: electricalPostNumber,
-    nearestbusinessorlandmark: nearestBuisness,
+    nearestbusinessorlandmark: nearestBusiness,
     descriptionoftheanimalinneed: description,
     animalspecies: species,
     phonenumber: phoneNumber,
