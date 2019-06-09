@@ -69,7 +69,7 @@ app.all('*', async (req, res) => {
   const json = Object.fromEntries(
     Object.entries(
       JSON.parse(req.body.rawRequest)
-    ).map(([k, v]) => [k.replace(/[0-9]$/, '')])
+    ).map(([k, v]) => [k.replace(/(^q[0-9]+|[0-9]+$)/g, '')])
   )
 
   // delete req.body['rawRequest']
@@ -88,11 +88,14 @@ app.all('*', async (req, res) => {
   } = req.body
 
   const {
-    q6_yourName: name,
-    q12_animalSpecies: species,
-    q3_whereIs: coordinatesString,
-    q4_phoneNumber: phoneObj,
-    q11_descriptionOf: description,
+    coordinatesString,
+    phoneNumber: phoneObj,
+    email: email,
+    yourName: name,
+    whatIs: electricalPostNumber,
+    nearestBusiness: nearestBuisness,
+    descriptionOf: description,
+    animalSpecies: species,
   } = json
 
   const fullname = `${name.first} ${name.last}`
@@ -122,13 +125,13 @@ app.all('*', async (req, res) => {
      'https://jotform.co/uploads/wildsunrescue/'+
      `${formID}/${submissionID}/${submissionID}_base64_9.png`
     ),
-    email: json.q5_email,
-    firstname: json.q6_yourName.first,
-    lastname: json.q6_yourName.last,
-    electricalpostnumber: json.q7_whatIs,
-    nearestbusinessorlandmark: json.q10_nearestBusiness,
-    descriptionoftheanimalinneed: json.q11_descriptionOf,
-    animalspecies: json.q12_animalSpecies,
+    email,
+    firstname: name.first,
+    lastname: name.last,
+    electricalpostnumber: electricalPostNumber,
+    nearestbusinessorlandmark: nearestBuisness,
+    descriptionoftheanimalinneed: description,
+    animalspecies: species,
     phonenumber: phoneNumber,
     ip: req.body.ip,
   }
