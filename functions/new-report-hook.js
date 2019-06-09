@@ -71,12 +71,12 @@ app.all('*', async (req, res) => {
   // delete req.body['rawRequest']
   // delete json['q9_photoOf9']
   //
-  // console.log('\nForm Submission')
-  // console.log('----------------------------------------------')
-  // console.log({
-  //   body: req.body,
-  //   json,
-  // })
+  console.log('\nForm Submission')
+  console.log('----------------------------------------------')
+  console.log('body')
+  console.log(req.body)
+  console.log('json')
+  console.log(JSON.stringify(json, null, 2))
 
   const {
     formID,
