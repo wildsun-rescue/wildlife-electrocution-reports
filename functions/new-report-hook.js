@@ -66,7 +66,11 @@ app.all('*', async (req, res) => {
 
   await Promise.promisify(upload)(req, res)
 
-  const json = JSON.parse(req.body.rawRequest)
+  const json = Object.fromEntries(
+    Object.entries(
+      JSON.parse(req.body.rawRequest)
+    ).map(([k, v]) => [k.replace(/[0-9]$/, '')])
+  )
 
   // delete req.body['rawRequest']
   // delete json['q9_photoOf9']
@@ -84,11 +88,11 @@ app.all('*', async (req, res) => {
   } = req.body
 
   const {
-    q6_yourName6: name,
+    q6_yourName: name,
     q12_animalSpecies: species,
     q3_whereIs: coordinatesString,
-    q4_phoneNumber4: phoneObj,
-    q11_descriptionOf11: description,
+    q4_phoneNumber: phoneObj,
+    q11_descriptionOf: description,
   } = json
 
   const fullname = `${name.first} ${name.last}`
@@ -118,12 +122,12 @@ app.all('*', async (req, res) => {
      'https://jotform.co/uploads/wildsunrescue/'+
      `${formID}/${submissionID}/${submissionID}_base64_9.png`
     ),
-    email: json.q5_email5,
-    firstname: json.q6_yourName6.first,
-    lastname: json.q6_yourName6.last,
-    electricalpostnumber: json.q7_whatIs7,
+    email: json.q5_email,
+    firstname: json.q6_yourName.first,
+    lastname: json.q6_yourName.last,
+    electricalpostnumber: json.q7_whatIs,
     nearestbusinessorlandmark: json.q10_nearestBusiness,
-    descriptionoftheanimalinneed: json.q11_descriptionOf11,
+    descriptionoftheanimalinneed: json.q11_descriptionOf,
     animalspecies: json.q12_animalSpecies,
     phonenumber: phoneNumber,
     ip: req.body.ip,
