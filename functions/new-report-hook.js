@@ -126,9 +126,13 @@ app.all('*', async (req, res) => {
     submissiondate: new Date().toISOString(),
     gpscoordinates: coords.join(', '),
     map,
-    photo: (
+    animalphoto: (
      'https://jotform.co/uploads/wildsunrescue/'+
      `${formID}/${submissionID}/${submissionID}_base64_9.png`
+    ),
+    locationphoto: (
+     'https://jotform.co/uploads/wildsunrescue/'+
+     `${formID}/${submissionID}/${submissionID}_base64_15.png`
     ),
     email,
     firstname: name.first,
