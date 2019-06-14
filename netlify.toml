@@ -9,7 +9,7 @@
   base="."
   command = "yarn build"
   publish = "dist"
-  functions = "functions"
+  functions = "dist/functions"
 
 # The following redirect is intended for use with most SPAs that handle
 # routing internally.
