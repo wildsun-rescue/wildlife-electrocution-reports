@@ -20,7 +20,7 @@ import WildlifeReportFormStyles from './WildlifeReportFormStyles'
 
 const SUBMISSION_URL = (
   (process.env.NODE_ENV === 'development' && 'http://localhost:34567/report')
-  || 'https://tender-noether-e25cce.netlify.com/.netlify/functions/report'
+  || '/.netlify/functions/report'
 )
 
 export default () => {
