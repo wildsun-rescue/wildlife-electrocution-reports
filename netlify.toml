@@ -1,4 +1,22 @@
-# example netlify.toml
+# Global settings applied to the whole site.
+#
+# “base” is the directory to change to before starting build. If you set base:
+#        that is where we will look for package.json/.nvmrc/etc, not repo root!
+# “command” is your build command.
+# “publish” is the directory to publish (relative to the root of your repo).
+
+[build]
+  base    = "frontend"
+  command = "yarn build"
+  publish = "frontend/dist"
+
+# The following redirect is intended for use with most SPAs that handle
+# routing internally.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 [build]
   command = "rm functions/*.test.js"
   functions = "functions"
