@@ -66,12 +66,11 @@ const getSheet = async () => {
 
 const getManagers = async ({ sheet }) => {
   const managerRows = await Promise.promisify(sheet.getRows)(pages.managers)
-  console.log(JSON.stringify(managerRows, null, 2))
 
   return managerRows
     .filter(row => row.active.trim().toUpperCase() === 'Y')
     .map(row => ({
-      phoneNumber: row.cellphone.replace(/[- ]/g).trim(),
+      phoneNumber: row.cellphone.replace(/[- ]/g, '').trim(),
       whatsApp: row.whatsapp.trim().toUpperCase() === 'Y',
     }))
     .filter(({ phoneNumber }) => phoneNumber.length > 0)
