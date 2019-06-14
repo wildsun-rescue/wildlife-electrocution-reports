@@ -6,9 +6,9 @@
 # “publish” is the directory to publish (relative to the root of your repo).
 
 [build]
-  base    = "frontend"
-  command = "yarn build"
+  command = "rm functions/*.test.js && cd frontend && yarn && yarn build"
   publish = "frontend/dist"
+  functions = "functions"
 
 # The following redirect is intended for use with most SPAs that handle
 # routing internally.
@@ -17,23 +17,18 @@
   to = "/index.html"
   status = 200
 
-[build]
-  command = "rm functions/*.test.js"
-  functions = "functions"
-  publish = "."
+## Uncomment to use this redirect for Single Page Applications like create-react-app.
+## Not needed for static site generators.
+#[[redirects]]
+#  from = "/*"
+#  to = "/index.html"
+#  status = 200
 
-  ## Uncomment to use this redirect for Single Page Applications like create-react-app.
-  ## Not needed for static site generators.
-  #[[redirects]]
-  #  from = "/*"
-  #  to = "/index.html"
-  #  status = 200
+## (optional) Settings for Netlify Dev
+## https://github.com/netlify/netlify-dev-plugin#project-detection
+#[dev]
+#  command = "yarn start" # Command to start your dev server
+#  port = 3000 # Port that the dev server will be listening on
+#  publish = "dist" # Folder with the static content for _redirect file
 
-  ## (optional) Settings for Netlify Dev
-  ## https://github.com/netlify/netlify-dev-plugin#project-detection
-  #[dev]
-  #  command = "yarn start" # Command to start your dev server
-  #  port = 3000 # Port that the dev server will be listening on
-  #  publish = "dist" # Folder with the static content for _redirect file
-
-  ## more info on configuring this file: https://www.netlify.com/docs/netlify-toml-reference/
+## more info on configuring this file: https://www.netlify.com/docs/netlify-toml-reference/
