@@ -74,7 +74,7 @@ const getManagers = async ({ sheet }) => {
       phoneNumber: row.cellphone.replace(/[- ]/g).trim(),
       whatsApp: row.whatsapp.trim().toUpperCase() === 'Y',
     }))
-    .filter(cellphone => cellphone.length > 0)
+    .filter(({ phoneNumber }) => phoneNumber.length > 0)
 }
 
 const updateSpreadsheet = async ({ row, sheet }) => {
@@ -186,14 +186,14 @@ app.post('*', async (req, res) => {
   /* eslint-disable-next-line no-console */
   console.log('Sending Texts')
   await Promise.all(
-    managers.map(({ phoneNumber: managerPhoneNumber, whatsApp }) => (
-      console.log({ managerPhoneNumber, whatsApp }) ||
-      twilio.messages.create({
+    managers.map(({ phoneNumber: managerPhoneNumber, whatsApp }) => {
+      console.log({ managerPhoneNumber, whatsApp })
+      return twilio.messages.create({
         body: smsMessage,
         from: whatsApp ? TWILLIO_WHATSAPP_NUMBER : TWILLIO_PHONE_NUMBER,
         to: (whatsApp ? 'whatsapp:' : '') + managerPhoneNumber,
       })
-    )),
+    }),
   )
 
   /* eslint-disable-next-line no-console */
