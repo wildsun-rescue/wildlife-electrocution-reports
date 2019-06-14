@@ -186,11 +186,14 @@ app.post('*', async (req, res) => {
   console.log('Sending Texts')
   await Promise.all(
     managers.map(({ phoneNumber: managerPhoneNumber, whatsApp }) => {
-      console.log({ managerPhoneNumber, whatsApp })
+      const to = (whatsApp ? 'whatsapp:' : '') + managerPhoneNumber
+      /* eslint-disable-next-line no-console */
+      console.log(to)
+
       return twilio.messages.create({
         body: smsMessage,
         from: whatsApp ? TWILLIO_WHATSAPP_NUMBER : TWILLIO_PHONE_NUMBER,
-        to: (whatsApp ? 'whatsapp:' : '') + managerPhoneNumber,
+        to,
       })
     }),
   )
