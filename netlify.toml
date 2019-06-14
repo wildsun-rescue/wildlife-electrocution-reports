@@ -7,7 +7,7 @@
 
 [build]
   base="."
-  command = "rm functions/*.test.js && cd frontend && yarn && yarn build && cp -r ../function ./dist/functions"
+  command = "rm functions/*.test.js && cd frontend && yarn && yarn build && cp -r ../functions ./dist/functions"
   publish = "frontend/dist"
   functions = "functions"
 
