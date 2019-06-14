@@ -10,7 +10,7 @@ const isgd = require('isgd')
 const GoogleSpreadsheet = require('google-spreadsheet')
 
 // const Yup = require('yup')
-const WildlifeReportSchema = require('../lib/WildlifeReportSchema')
+const WildlifeReportSchema = require('../common/WildlifeReportSchema')
 // const WildlifeReportSchema = Yup.object().shape({
 //   coords: Yup.array()
 //     .of(Yup.number())

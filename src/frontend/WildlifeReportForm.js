@@ -9,7 +9,7 @@ import {
 
 import { TextField } from 'formik-material-ui'
 
-import WildlifeReportSchema from '../../lib/WildlifeReportSchema'
+import WildlifeReportSchema from '../common/WildlifeReportSchema'
 
 import Step2Map from './map/Step2Map'
 import useGeoLocation from './map/useGeoLocation'

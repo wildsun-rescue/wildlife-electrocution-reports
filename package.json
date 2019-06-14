@@ -7,7 +7,11 @@
   "private": true,
   "scripts": {
     "test": "jest .",
-    "dev": "NODE_ENV=development netlify dev"
+    "functions:start": "NODE_ENV=development netlify dev",
+    "functions:build": "parcel build ./src/functions/report.js -d ./dist/functions/ --target node",
+    "frontend:start": "NODE_ENV=development parcel ./src/frontend/index.html",
+    "frontend:build": "parcel build ./src/frontend/index.html --detailed-report",
+    "build": "yarn frontend:build && yarn functions:build"
   },
   "jest": {
     "testEnvironment": "node"
@@ -18,7 +22,10 @@
     "eslint-plugin-import": "^2.17.3",
     "eslint-plugin-jsx-a11y": "^6.2.1",
     "eslint-plugin-react": "^7.13.0",
-    "request": "^2.88.0"
+    "@babel/core": "^7.0.0-0",
+    "@babel/plugin-transform-react-jsx": "^7.3.0",
+    "babel-preset-nano-react-app": "^0.1.0",
+    "parcel-bundler": "^1.11.0"
   },
   "dependencies": {
     "bluebird": "^3.5.5",
@@ -33,6 +40,39 @@
     "nano-react-app": "^0.1.2",
     "serverless-http": "^2.0.2",
     "twilio": "^3.31.0",
+    "@material-ui/core": "^4.1.1",
+    "@material-ui/icons": "^4.2.0",
+    "@material-ui/styles": "^4.1.1",
+    "formik": "^1.5.7",
+    "formik-material-ui": "^0.0.18",
+    "pigeon-draggable": "^0.1.1",
+    "pigeon-maps": "*",
+    "pigeon-marker": "^0.3.4",
+    "pigeon-overlay": "^0.2.3",
+    "prop-types": "*",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-html5-camera-photo": "^1.4.3",
+    "whatwg-fetch": "^3.0.0",
     "yup": "^0.27.0"
+  },
+  "babel": {
+    "presets": [
+      "nano-react-app"
+    ],
+    "plugins": [
+      [
+        "@babel/plugin-proposal-class-properties",
+        {
+          "loose": true
+        }
+      ],
+      [
+        "@babel/plugin-transform-react-jsx",
+        {
+          "pragmaFrag": "React.Fragment"
+        }
+      ]
+    ]
   }
 }
