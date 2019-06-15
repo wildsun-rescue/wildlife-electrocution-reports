@@ -45,10 +45,13 @@ export default () => {
       },
       body: JSON.stringify({
         ...values,
-        photos: Object.values(photos),
+        photoCount: Object.values(photos).length,
       }),
-    }).then(() => {
-      setSubmitted(true)
+    }).then((response) => {
+      if (response.ok) {
+        setSubmitted(true)
+      }
+      setAjaxError(!response.ok)
       actions.setSubmitting(false)
     }).catch(() => {
       setAjaxError(true)

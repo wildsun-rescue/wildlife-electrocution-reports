@@ -97,27 +97,38 @@ const s3Bucket = new AWS.S3({
 })
 
 const uploadPhoto = async (fileURI, submissionDate) => {
-  const ContentType = fileURI.match(/^data:(image\/\w+);/)[1]
+  // const ContentType = fileURI.match(/^data:(image\/\w+);/)[1]
+  //
+  // const buf = Buffer.from(
+  //   fileURI.replace(/^data:image\/\w+;base64,/, ''),
+  //   'base64',
+  // )
+  //
 
-  const buf = Buffer.from(
-    fileURI.replace(/^data:image\/\w+;base64,/, ''),
-    'base64',
-  )
+  // await Promise.promisify(s3Bucket.putObject)(data)
 
-  const data = {
-    Key: `wildlife-report-image-${submissionDate}-${uuid.v4()}`,
-    Body: buf,
-    ContentEncoding: 'base64',
-    ContentType,
-  }
+  const key = `wildlife-report-image-${submissionDate}-${uuid.v4()}`
 
-  await Promise.promisify(s3Bucket.putObject)(data)
+  const presignedPostPayload = await Promise.promisify(s3Bucket.createPresignedPost)({
+    Fields: {
+      key,
+    },
+    Conditions: [
+      ['content-length-range', 0, 30000000], // 30 Mb
+    ],
+  })
 
   const YEARS = 60 * 60 * 24 * 365
-  return s3Bucket.getSignedUrl('getObject', {
-    Key: data.key,
+
+  const readURL = s3Bucket.getSignedUrl('getObject', {
+    Key: key,
     Expires: 1000 * YEARS,
   })
+
+  return {
+    presignedPostPayload,
+    readURL,
+  }
 }
 
 
@@ -183,7 +194,7 @@ app.post('*', async (req, res) => {
 
   /* eslint-disable-next-line no-console */
   console.log('Uploading Photos')
-  const photoURLs = await Promise.all(
+  const s3PhotoData = await Promise.all(
     photos.map(photo => uploadPhoto(photo, submissionDate)),
   )
 
@@ -196,8 +207,8 @@ app.post('*', async (req, res) => {
     submissiondate: submissionDate,
     gpscoordinates: coords.join(', '),
     map,
-    animalphoto: photoURLs[0],
-    locationphoto: photoURLs[1],
+    animalphoto: s3PhotoData[0].readURL,
+    locationphoto: s3PhotoData[1].readURL,
     email,
     fullname: fullName,
     electricalpostnumber: electricalPostNumber,
@@ -254,7 +265,12 @@ app.post('*', async (req, res) => {
 
   /* eslint-disable-next-line no-console */
   console.log('Done')
-  return { statusCode: 200, body: '' }
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      presignedPostPayloads: s3PhotoData.map(d => d.presignedPostPayload),
+    }),
+  }
 })
 
 module.exports.handler = serverless(app)
