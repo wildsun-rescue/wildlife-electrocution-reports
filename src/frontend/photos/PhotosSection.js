@@ -15,9 +15,9 @@ import 'react-html5-camera-photo/build/css/index.css'
 import Camera from 'react-html5-camera-photo'
 
 const steps = [
-  'Photo of the animal',
-  'Photo of the location',
-  'Done'
+  'Photo of the animal / Foto del animal',
+  'Photo of the location / Foto de la ubicación',
+  'Done / Listo',
 ]
 
 export default ({
@@ -47,11 +47,11 @@ export default ({
         size="large"
         onClick={() => setOpen(true)}
       >
-        Take Photo
+        Take Photo / Tomar Foto
       </Button>
       { photoCount > 0 && (
         <Typography variant="body1" className={classes.photoCount}>
-          {`(${photoCount} photos recorded)`}
+          {`(${photoCount} photos recorded / ${photoCount} fotos registradas)`}
         </Typography>
       )}
       <Dialog
@@ -98,6 +98,9 @@ export default ({
             <div className={classes.photosDone}>
               <Typography variant="h5" paragraph>
                 Thank you, the photos have been recorded.
+              </Typography>
+              <Typography variant="h5" paragraph>
+                Gracias, las fotos han sido registradas.
               </Typography>
               <Button
                 className={classes.photoButton}

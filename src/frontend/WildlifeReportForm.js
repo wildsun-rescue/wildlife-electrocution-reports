@@ -99,7 +99,7 @@ export default () => {
           <div className={classes.content}>
             <img src={wildSunLogo} alt="" className={classes.logo} />
             <Typography variant="h4" paragraph>
-              Wildlife Electrocution Report
+              Wildlife Electrocution Report / Reporte de Electrocución de Vida Silvestre
             </Typography>
             <div className={classes.introduction}>
               <Typography variant="body1">
@@ -126,7 +126,7 @@ export default () => {
             />
             <div className={classes.textFieldsSection}>
               <Typography variant="h5" className={classes.textFieldsHeader}>
-                Electrocution Details
+                Electrocution Details / Detalles de Electrocución
               </Typography>
               <Field
                 name="electricalPostNumber"
@@ -144,7 +144,7 @@ export default () => {
               />
               <Field
                 name="species"
-                label="Animal Species / La espcie Del Animal"
+                label="Animal Species / La especie Del Animal"
                 component={TextField}
                 margin="normal"
                 fullWidth
@@ -159,7 +159,7 @@ export default () => {
                 rows={4}
               />
               <Typography variant="h5" className={classes.textFieldsHeader}>
-                Your Details
+                Your Details / Tus Detalles
               </Typography>
               <Field
                 name="fullName"
@@ -187,9 +187,14 @@ export default () => {
             </div>
           </div>
           {ajaxError && (
-            <Typography variant="body1" className={classes.ajaxError}>
-              There was an error processing your report. Please try again or contact us at 8884-8444
-            </Typography>
+            <>
+              <Typography variant="body1" className={classes.ajaxError}>
+                There was an error processing your report. Please try again or contact us at 8884-8444.
+              </Typography>
+              <Typography variant="body1" className={classes.ajaxError}>
+                Hubo un error procesando su reporte. Por favor intente de nuevo o contactanos al 8884-8444.
+              </Typography>
+            </>
           )}
           <div className={classes.buttons}>
             <Button
@@ -202,7 +207,7 @@ export default () => {
                 Object.keys(errors).length > 0 || isSubmitting || isValidating
               }
             >
-              Submit
+              Submit / Enviar
             </Button>
           </div>
         </Form>
