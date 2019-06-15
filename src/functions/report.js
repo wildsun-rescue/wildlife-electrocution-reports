@@ -193,10 +193,10 @@ app.post('*', async (req, res) => {
   )
 
   /* eslint-disable-next-line no-console */
-  console.log('Uploading Photos')
-  const s3PhotoData = await Promise.all(
-    photos.map(photo => uploadPhoto(photo, submissionDate)),
-  )
+  // console.log('Uploading Photos')
+  // const s3PhotoData = await Promise.all(
+  //   photos.map(photo => uploadPhoto(photo, submissionDate)),
+  // )
 
   /* eslint-disable-next-line no-console */
   console.log('Connecting to Google Sheets')
@@ -207,8 +207,10 @@ app.post('*', async (req, res) => {
     submissiondate: submissionDate,
     gpscoordinates: coords.join(', '),
     map,
-    animalphoto: s3PhotoData[0].readURL,
-    locationphoto: s3PhotoData[1].readURL,
+    // animalphoto: s3PhotoData[0].readURL,
+    // locationphoto: s3PhotoData[1].readURL,
+    animalphoto: 'https://i.pinimg.com/originals/01/c2/9c/01c29c6d963bc2c93893622bc0fd2cc4.jpg',
+    locationphoto: 'https://data.junkee.com/wp-content/uploads/2017/04/Fyre-Festival.jpg',
     email,
     fullname: fullName,
     electricalpostnumber: electricalPostNumber,
