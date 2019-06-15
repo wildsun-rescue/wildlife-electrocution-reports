@@ -270,7 +270,7 @@ app.post('*', async (req, res) => {
   return {
     statusCode: 200,
     body: JSON.stringify({
-      presignedPostPayloads: s3PhotoData.map(d => d.presignedPostPayload),
+      // presignedPostPayloads: s3PhotoData.map(d => d.presignedPostPayload),
     }),
   }
 })
