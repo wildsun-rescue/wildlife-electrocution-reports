@@ -126,6 +126,9 @@ const uploadPhoto = async (fileURI, submissionDate) => {
 app.post('*', async (req, res) => {
   const json = JSON.parse(req.body.toString('utf8'))
 
+  const { photos } = json
+  delete json.photos
+
   /* eslint-disable no-console */
   console.log('\nForm Submission')
   console.log('----------------------------------------------')
@@ -135,18 +138,22 @@ app.post('*', async (req, res) => {
   const valid = await WildlifeReportSchema.isValid(json)
 
   if (!valid) {
+    /* eslint-disable-next-line no-console */
     console.log('Invalid Form Submission')
     res.status(500)
     return null
   }
 
-  if (typeof json.photos !== 'object') {
+  if (typeof photos !== 'object') {
     throw new Error('Photos must be an array')
   }
 
-  if (json.photos.length > 2) {
+  if (photos.length > 2) {
     throw new Error('Cannot upload more then 2 photos')
   }
+
+  /* eslint-disable-next-line no-console */
+  console.log(`${photos.length} photos`)
 
 
   if (process.env.NODE_ENV === 'development') {
@@ -157,7 +164,6 @@ app.post('*', async (req, res) => {
 
   const {
     coords,
-    photos,
     electricalPostNumber,
     nearestLandmark,
     species,
