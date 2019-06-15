@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useCallback } from 'react'
 import { Formik, Form, Field } from 'formik'
 import { fetch } from 'whatwg-fetch'
 
@@ -16,6 +16,8 @@ import useGeoLocation from './map/useGeoLocation'
 
 import PhotosSection from './photos/PhotosSection'
 
+import wildSunLogo from './wild-sun-logo.png'
+
 import WildlifeReportFormStyles from './WildlifeReportFormStyles'
 
 const SUBMISSION_URL = (
@@ -27,17 +29,44 @@ export default () => {
   const classes = WildlifeReportFormStyles()
 
   const geoLocation = useGeoLocation()
+  const [ajaxError, setAjaxError] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [photos, setPhotos] = useState({
+    0: null,
+    1: null,
+  })
 
   const onSubmit = (values, actions) => {
+    setAjaxError(false)
     fetch(SUBMISSION_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(values),
-    }).finally(() => {
+    }).then(() => {
+      setSubmitted(true)
+      actions.setSubmitting(false)
+    }).catch(() => {
+      setAjaxError(true)
       actions.setSubmitting(false)
     })
+  }
+
+  if (submitted) {
+    return (
+      <div className={classes.root}>
+        <img src={wildSunLogo} alt="" className={classes.logo} />
+        <div className={classes.thankYouPage}>
+          <Typography variant="h4" className={classes.thankYou}>
+            Thank You! / ¡Gracias!
+          </Typography>
+          <Typography variant="h5">
+            Your submission has been received. / Hemos recibido tu información.
+          </Typography>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -68,7 +97,8 @@ export default () => {
       }) => (
         <Form className={classes.root}>
           <div className={classes.content}>
-            <Typography variant="h5" paragraph>
+            <img src={wildSunLogo} alt="" className={classes.logo} />
+            <Typography variant="h4" paragraph>
               Wildlife Electrocution Report
             </Typography>
             <div className={classes.introduction}>
@@ -89,13 +119,17 @@ export default () => {
               </Typography>
             </div>
             <Step2Map classes={classes} geoLocation={geoLocation} />
-            <PhotosSection classes={classes} />
+            <PhotosSection
+              classes={classes}
+              photos={photos}
+              setPhotos={setPhotos}
+            />
             <div className={classes.textFieldsSection}>
-              <Typography variant="h6" className={classes.textFieldsHeader}>
+              <Typography variant="h5" className={classes.textFieldsHeader}>
                 Electrocution Details
               </Typography>
               <Field
-                name="eletricalPostNumber"
+                name="electricalPostNumber"
                 label="Nearest Electrical Post Number / Número del Poste Eléctrico Mas Cercano"
                 component={TextField}
                 fullWidth
@@ -124,7 +158,7 @@ export default () => {
                 multiline
                 rows={4}
               />
-              <Typography variant="h6" className={classes.textFieldsHeader}>
+              <Typography variant="h5" className={classes.textFieldsHeader}>
                 Your Details
               </Typography>
               <Field
@@ -152,6 +186,11 @@ export default () => {
               />
             </div>
           </div>
+          {ajaxError && (
+            <Typography variant="body1" className={classes.ajaxError}>
+              There was an error processing your report. Please try again or contact us at 8884-8444
+            </Typography>
+          )}
           <div className={classes.buttons}>
             <Button
               className={classes.button}

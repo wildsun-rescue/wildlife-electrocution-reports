@@ -9,28 +9,7 @@ const Twilio = require('twilio')
 const isgd = require('isgd')
 const GoogleSpreadsheet = require('google-spreadsheet')
 
-// const Yup = require('yup')
 const WildlifeReportSchema = require('../common/WildlifeReportSchema')
-// const WildlifeReportSchema = Yup.object().shape({
-//   coords: Yup.array()
-//     .of(Yup.number())
-//     .min(2)
-//     .max(2)
-//     .required(),
-//   // animalPhoto: Yup.string(),
-//   // locationPhoto: Yup.string(),
-//   elecricalPostNumber: Yup.string(),
-//   nearestLandmark: Yup.string(),
-//   species: Yup.string(),
-//   description: Yup.string(),
-//   phoneNumber: Yup.string()
-//     .required('Required'),
-//   fullName: Yup.string()
-//     .required('Required'),
-//   email: Yup.string()
-//     .email('Invalid email')
-//     .required('Required'),
-// })
 
 const {
   TWILLIO_SID,

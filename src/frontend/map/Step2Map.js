@@ -13,7 +13,7 @@ export default ({
   geoLocation,
 }) => (
   <div>
-    <Typography variant="h6" className={classes.fieldLabel} paragraph>
+    <Typography variant="h5" className={classes.fieldLabel} paragraph>
       Where is the animal located? / ¿Por dónde se encuentra el animal?
     </Typography>
     { geoLocation.loading && (
