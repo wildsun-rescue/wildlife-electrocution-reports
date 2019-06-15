@@ -20,14 +20,17 @@ const {
   TWILLIO_WHATSAPP_NUMBER,
   GOOGLE_CREDENTIALS,
   GOOGLE_SPREADSHEET_ID,
-  AWS_BUCKET,
+  S3_BUCKET,
+  S3_ACCESS_KEY_ID,
+  S3_SECRET_ACCESS_KEY,
 } = process.env
 
 // In addition aws-sdk uses these environment variables internally as well:
 // AWS_ACCESS_KEY_ID
 // AWS_SECRET_ACCESS_KEY
-// AWS_SESSION_TOKEN
 
+// PROBABLY UNUSED:
+// AWS_SESSION_TOKEN
 
 const pages = {
   instructions: 1,
@@ -39,6 +42,9 @@ const app = express()
 app.use(cors())
 
 const upload = multer().none()
+
+
+// Google Sheets
 
 const getSheet = async () => {
   // spreadsheet key is the long id in the sheets URL
@@ -69,13 +75,24 @@ const updateSpreadsheet = async ({ row, sheet }) => {
   await Promise.promisify(sheet.addRow)(pages.formSubmissions, row)
 }
 
+
+// URL Shortening
+
 const shorten = url => new Promise((resolve) => {
   isgd.shorten(url, resolve)
 })
 
+
+// AWS and S3
+
+AWS.config.credentials = new AWS.Credentials(
+  S3_ACCESS_KEY_ID,
+  S3_SECRET_ACCESS_KEY,
+)
+
 const s3Bucket = new AWS.S3({
   params: {
-    Bucket: AWS_BUCKET,
+    Bucket: S3_BUCKET,
   },
 })
 
@@ -102,6 +119,9 @@ const uploadPhoto = async (fileURI, submissionDate) => {
     Expires: 1000 * YEARS,
   })
 }
+
+
+// Lambda Function
 
 app.post('*', async (req, res) => {
   const json = JSON.parse(req.body.toString('utf8'))
