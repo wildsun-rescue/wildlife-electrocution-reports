@@ -79,7 +79,7 @@ const s3Bucket = new AWS.S3({
   },
 })
 
-const uploadPhoto = async (fileURI) => {
+const uploadPhoto = async (fileURI, submissionDate) => {
   const ContentType = fileURI.match(/^data:(image\/\w+);/)[1]
 
   const buf = Buffer.from(
@@ -88,13 +88,19 @@ const uploadPhoto = async (fileURI) => {
   )
 
   const data = {
-    Key: `wildlife-report-image-${uuid.v4()}`,
+    Key: `wildlife-report-image-${submissionDate}-${uuid.v4()}`,
     Body: buf,
     ContentEncoding: 'base64',
     ContentType,
   }
 
   await Promise.promisify(s3Bucket.putObject)(data)
+
+  const YEARS = 60 * 60 * 24 * 365
+  return s3Bucket.getSignedUrl('getObject', {
+    Key: data.key,
+    Expires: 1000 * YEARS,
+  })
 }
 
 app.post('*', async (req, res) => {
@@ -141,6 +147,8 @@ app.post('*', async (req, res) => {
     email,
   } = json
 
+  const submissionDate = new Date().toISOString()
+
   /* eslint-disable-next-line no-console */
   console.log('Shortening URL')
   const map = await shorten(
@@ -149,8 +157,8 @@ app.post('*', async (req, res) => {
 
   /* eslint-disable-next-line no-console */
   console.log('Uploading Photos')
-  await Promise.all(
-    photos.map(uploadPhoto),
+  const photoURLs = await Promise.all(
+    photos.map(photo => uploadPhoto(photo, submissionDate)),
   )
 
   /* eslint-disable-next-line no-console */
@@ -159,18 +167,11 @@ app.post('*', async (req, res) => {
 
   const row = {
     confirmed: 'N',
-    submissiondate: new Date().toISOString(),
+    submissiondate: submissionDate,
     gpscoordinates: coords.join(', '),
     map,
-    // TODO: photos
-    // animalphoto: (
-    //  'https://jotform.co/uploads/wildsunrescue/'+
-    //  `${formID}/${submissionID}/${submissionID}_base64_9.png`
-    // ),
-    // locationphoto: (
-    //  'https://jotform.co/uploads/wildsunrescue/'+
-    //  `${formID}/${submissionID}/${submissionID}_base64_15.png`
-    // ),
+    animalphoto: photoURLs[0],
+    locationphoto: photoURLs[1],
     email,
     fullname: fullName,
     electricalpostnumber: electricalPostNumber,
