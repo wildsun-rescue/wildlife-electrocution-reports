@@ -11,13 +11,15 @@ Yup.addMethod(Yup.string, 'phone', function validatePhone() {
 })
 
 const WildlifeReportSchema = Yup.object().shape({
+  photos: Yup.array()
+    .of(Yup.string())
+    .min(2)
+    .max(2),
   coords: Yup.array()
     .of(Yup.number())
     .min(2)
     .max(2)
     .required(),
-  // animalPhoto: Yup.string(),
-  // locationPhoto: Yup.string(),
   elecricalPostNumber: Yup.string(),
   nearestLandmark: Yup.string(),
   species: Yup.string(),

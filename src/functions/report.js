@@ -8,6 +8,8 @@ const deline = require('deline')
 const Twilio = require('twilio')
 const isgd = require('isgd')
 const GoogleSpreadsheet = require('google-spreadsheet')
+const AWS = require('aws-sdk')
+const uuid = require('uuid')
 
 const WildlifeReportSchema = require('../common/WildlifeReportSchema')
 
@@ -18,7 +20,14 @@ const {
   TWILLIO_WHATSAPP_NUMBER,
   GOOGLE_CREDENTIALS,
   GOOGLE_SPREADSHEET_ID,
+  AWS_BUCKET,
 } = process.env
+
+// In addition aws-sdk uses these environment variables internally as well:
+// AWS_ACCESS_KEY_ID
+// AWS_SECRET_ACCESS_KEY
+// AWS_SESSION_TOKEN
+
 
 const pages = {
   instructions: 1,
@@ -64,6 +73,30 @@ const shorten = url => new Promise((resolve) => {
   isgd.shorten(url, resolve)
 })
 
+const s3Bucket = new AWS.S3({
+  params: {
+    Bucket: AWS_BUCKET,
+  },
+})
+
+const uploadPhoto = async (fileURI) => {
+  const ContentType = fileURI.match(/^data:(image\/\w+);/)[1]
+
+  const buf = Buffer.from(
+    fileURI.replace(/^data:image\/\w+;base64,/, ''),
+    'base64',
+  )
+
+  const data = {
+    Key: `wildlife-report-image-${uuid.v4()}`,
+    Body: buf,
+    ContentEncoding: 'base64',
+    ContentType,
+  }
+
+  await Promise.promisify(s3Bucket.putObject)(data)
+}
+
 app.post('*', async (req, res) => {
   const json = JSON.parse(req.body.toString('utf8'))
 
@@ -81,6 +114,15 @@ app.post('*', async (req, res) => {
     return null
   }
 
+  if (typeof json.photos !== 'object') {
+    throw new Error('Photos must be an array')
+  }
+
+  if (json.photos.length > 2) {
+    throw new Error('Cannot upload more then 2 photos')
+  }
+
+
   if (process.env.NODE_ENV === 'development') {
     return { statusCode: 200, body: '' }
   }
@@ -89,9 +131,7 @@ app.post('*', async (req, res) => {
 
   const {
     coords,
-    // TODO: photos
-    // animalPhoto,
-    // locationPhoto,
+    photos,
     electricalPostNumber,
     nearestLandmark,
     species,
@@ -101,8 +141,16 @@ app.post('*', async (req, res) => {
     email,
   } = json
 
+  /* eslint-disable-next-line no-console */
+  console.log('Shortening URL')
   const map = await shorten(
     `https://maps.google.com/maps?q=${coords[0]},${coords[1]}`,
+  )
+
+  /* eslint-disable-next-line no-console */
+  console.log('Uploading Photos')
+  await Promise.all(
+    photos.map(uploadPhoto),
   )
 
   /* eslint-disable-next-line no-console */
