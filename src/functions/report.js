@@ -10,6 +10,7 @@ const isgd = require('isgd')
 const GoogleSpreadsheet = require('google-spreadsheet')
 const AWS = require('aws-sdk')
 const uuid = require('uuid')
+require('isomorphic-fetch')
 
 const WildlifeReportSchema = require('../common/WildlifeReportSchema')
 
@@ -20,6 +21,7 @@ const {
   TWILLIO_WHATSAPP_NUMBER,
   GOOGLE_CREDENTIALS,
   GOOGLE_SPREADSHEET_ID,
+  PUSHBULLET_ACCESS_TOKEN,
   S3_BUCKET,
   S3_ACCESS_KEY_ID,
   S3_SECRET_ACCESS_KEY,
@@ -56,12 +58,22 @@ const getSheet = async () => {
 const getManagers = async ({ sheet }) => {
   const managerRows = await Promise.promisify(sheet.getRows)(pages.managers)
 
+  const bool = field => field.trim().toUpperCase() === 'Y'
+
   return managerRows
-    .filter(row => row.active.trim().toUpperCase() === 'Y')
-    .map(row => ({
-      phoneNumber: row.cellphone.replace(/[- ]/g, '').trim(),
-      whatsApp: row.whatsapp.trim().toUpperCase() === 'Y',
-    }))
+    .filter(row => bool(row.active))
+    .map((row) => {
+      const email = row.pushbulletemail || ''
+
+      return {
+        phoneNumber: row.cellphone.replace(/[- ]/g, '').trim(),
+        sms: bool(row.textmessage),
+        pushbullet: bool(row.pushbullet),
+        // whatsApp: row.whatsapp.trim().toUpperCase() === 'Y',
+        whatsApp: false,
+        email: email.length > 0 ? email.trim() : null,
+      }
+    })
     .filter(({ phoneNumber }) => phoneNumber.length > 0)
 }
 
@@ -208,9 +220,9 @@ app.post('*', async (req, res) => {
   console.log('Getting Managers')
   const managers = await getManagers({ row, sheet })
 
-  const smsMessage = deline`
-    Wildlife Electrocution Alert!\n
+  const smsTitle = 'Wildlife Electrocution Alert!'
 
+  const smsBody = deline`
     A ${species} has been reported by ${fullName}
     📞 ${phoneNumber}\n
 
@@ -220,6 +232,8 @@ app.post('*', async (req, res) => {
 
     Sheet: https://docs.google.com/spreadsheets/d/1CT9bNkZvscQnYVaKHtEP2aZm6mDD_NNQy7EGV3OmSEg/edit?usp=sharing
   `
+
+  const smsMessage = `${smsTitle}\n\n${smsBody}`
 
   /* eslint-disable no-console */
   console.log(`\nSMS (${smsMessage.length} Bytes)`)
@@ -232,16 +246,49 @@ app.post('*', async (req, res) => {
   /* eslint-disable-next-line no-console */
   console.log('Sending Texts')
   await Promise.all(
-    managers.map(({ phoneNumber: managerPhoneNumber, whatsApp }) => {
-      const to = (whatsApp ? 'whatsapp:' : '') + managerPhoneNumber
+    managers.map((manager) => {
+      const to = (manager.whatsApp ? 'whatsapp:' : '') + manager.phoneNumber
       /* eslint-disable-next-line no-console */
-      console.log(to)
+      console.log(
+        'twillio:',
+        manager.sms && to,
+        'pushbullet:',
+        manager.pushbullet && manager.email,
+      )
 
-      return twilio.messages.create({
-        body: smsMessage,
-        from: whatsApp ? TWILLIO_WHATSAPP_NUMBER : TWILLIO_PHONE_NUMBER,
-        to,
-      })
+      const promises = []
+
+      if (manager.phoneNumber != null && manager.sms) {
+        promises.push(twilio.messages.create({
+          body: smsMessage,
+          from: manager.whatsApp ? TWILLIO_WHATSAPP_NUMBER : TWILLIO_PHONE_NUMBER,
+          to,
+        }))
+      }
+
+      if (manager.email != null && manager.pushbullet) {
+        promises.push(
+          fetch('https://api.pushbullet.com/v2/pushes', {
+            method: 'POST',
+            headers: {
+              'Access-Token': PUSHBULLET_ACCESS_TOKEN,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: manager.email,
+              type: 'note',
+              title: smsTitle,
+              body: smsBody,
+            }),
+          }).then((pushbulletResponse) => {
+            if (!pushbulletResponse.ok) {
+              throw new Error(pushbulletResponse)
+            }
+          }),
+        )
+      }
+
+      return Promise.all(promises)
     }),
   )
 
