@@ -79,21 +79,9 @@ export default () => {
             throw new Error('Status code error uploading photos')
           }
         })
-        // const xhr = new XMLHttpRequest()
-        // xhr.open('POST', presignedPostData.url, true)
-        // xhr.send(formData)
-        // return new Promise((resolve, reject) => {
-        //   xhr.onload = function onLoad() {
-        //     if (this.status === 204) {
-        //       resolve()
-        //     } else {
-        //       reject(this.responseText)
-        //     }
-        //   }
-        // })
       }),
     )).then(() => {
-      // setSubmitted(true)
+      setSubmitted(true)
       setAjaxError(false)
       actions.setSubmitting(false)
     }).catch((e) => {
