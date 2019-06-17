@@ -17,6 +17,7 @@ const {
   S3_BUCKET,
   S3_ACCESS_KEY_ID,
   S3_SECRET_ACCESS_KEY,
+  S3_REGION,
   STATIC_SECRET_KEY,
 } = process.env
 
@@ -28,6 +29,7 @@ app.use(cors())
 const s3 = new AWS.S3({
   accessKeyId: S3_ACCESS_KEY_ID,
   secretAccessKey: S3_SECRET_ACCESS_KEY,
+  region: S3_REGION,
   signatureVersion: 'v4',
 })
 

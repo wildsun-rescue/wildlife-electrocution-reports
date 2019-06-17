@@ -23,6 +23,7 @@ const {
   S3_BUCKET,
   S3_ACCESS_KEY_ID,
   S3_SECRET_ACCESS_KEY,
+  S3_REGION,
   STATIC_SECRET_KEY,
 } = process.env
 
@@ -79,12 +80,11 @@ const shorten = url => new Promise((resolve) => {
 
 // AWS and S3
 
-AWS.config.credentials = new AWS.Credentials(
-  S3_ACCESS_KEY_ID,
-  S3_SECRET_ACCESS_KEY,
-)
-
 const s3Bucket = new AWS.S3({
+  accessKeyId: S3_ACCESS_KEY_ID,
+  secretAccessKey: S3_SECRET_ACCESS_KEY,
+  region: S3_REGION,
+  signatureVersion: 'v4',
   params: {
     Bucket: S3_BUCKET,
   },
