@@ -64,17 +64,17 @@ const getManagers = async ({ sheet }) => {
     .filter(row => bool(row.active))
     .map((row) => {
       const email = row.pushbulletemail || ''
-
+      console.log(row, email)
       return {
+        name: row.manager,
         phoneNumber: row.cellphone.replace(/[- ]/g, '').trim(),
         sms: bool(row.textmessage),
         pushbullet: bool(row.pushbullet),
         // whatsApp: row.whatsapp.trim().toUpperCase() === 'Y',
         whatsApp: false,
-        email: email.length > 0 ? email.trim() : null,
+        email: email.length > 0 ? email.trim() : false,
       }
     })
-    .filter(({ phoneNumber }) => phoneNumber.length > 0)
 }
 
 const updateSpreadsheet = async ({ row, sheet }) => {
@@ -250,6 +250,7 @@ app.post('*', async (req, res) => {
       const to = (manager.whatsApp ? 'whatsapp:' : '') + manager.phoneNumber
       /* eslint-disable-next-line no-console */
       console.log(
+        manager.name,
         'twillio:',
         manager.sms && to,
         'pushbullet:',
@@ -266,7 +267,7 @@ app.post('*', async (req, res) => {
         }))
       }
 
-      if (manager.email != null && manager.pushbullet) {
+      if (manager.email && manager.pushbullet) {
         promises.push(
           fetch('https://api.pushbullet.com/v2/pushes', {
             method: 'POST',
