@@ -11,7 +11,9 @@ Yup.addMethod(Yup.string, 'phone', function validatePhone() {
 })
 
 const WildlifeReportSchema = Yup.object().shape({
-  photoCount: Yup.number(),
+  photoContentTypes: Yup.array()
+    .of(Yup.string())
+    .max(2),
   coords: Yup.array()
     .of(Yup.number())
     .min(2)

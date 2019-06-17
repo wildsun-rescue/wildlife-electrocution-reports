@@ -7,8 +7,9 @@
   "private": true,
   "scripts": {
     "test": "jest .",
-    "functions:start": "NODE_ENV=development netlify dev",
-    "functions:build": "parcel build ./src/functions/report.js -d ./dist/functions/ --target node --experimental-scope-hoisting --no-minify",
+    "functions:start": "netlify dev",
+    "functions:watch": "parcel watch ./src/functions/report.js ./src/functions/photo.js -d ./dist/functions/ --target node",
+    "functions:build": "parcel build ./src/functions/report.js ./src/functions/photo.js -d ./dist/functions/ --target node --experimental-scope-hoisting --no-minify",
     "frontend:start": "NODE_ENV=development parcel ./src/frontend/index.html",
     "frontend:build": "parcel build ./src/frontend/index.html --detailed-report",
     "build": "yarn frontend:build && yarn functions:build"

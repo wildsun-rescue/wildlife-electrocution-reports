@@ -23,14 +23,8 @@ const {
   S3_BUCKET,
   S3_ACCESS_KEY_ID,
   S3_SECRET_ACCESS_KEY,
+  STATIC_SECRET_KEY,
 } = process.env
-
-// In addition aws-sdk uses these environment variables internally as well:
-// AWS_ACCESS_KEY_ID
-// AWS_SECRET_ACCESS_KEY
-
-// PROBABLY UNUSED:
-// AWS_SESSION_TOKEN
 
 const pages = {
   instructions: 1,
@@ -96,38 +90,38 @@ const s3Bucket = new AWS.S3({
   },
 })
 
-const uploadPhoto = async (fileURI, submissionDate) => {
-  // const ContentType = fileURI.match(/^data:(image\/\w+);/)[1]
-  //
-  // const buf = Buffer.from(
-  //   fileURI.replace(/^data:image\/\w+;base64,/, ''),
-  //   'base64',
-  // )
-  //
+const imageFileExts = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/tiff': '.tiff',
+}
 
-  // await Promise.promisify(s3Bucket.putObject)(data)
+const createPhoto = async (contentType) => {
+  const id = uuid.v4()
+  const fileExt = imageFileExts[contentType]
 
-  const key = `wildlife-report-image-${submissionDate}-${uuid.v4()}`
+  if (fileExt == null) {
+    throw new Error(`Invalid photo content type: ${contentType}`)
+  }
 
-  const presignedPostPayload = await Promise.promisify(s3Bucket.createPresignedPost)({
+  const key = `wildlife-report-image-${id}${fileExt}`
+
+  const presignedPostPayload = await Promise.promisify(
+    (params, cb) => s3Bucket.createPresignedPost(params, cb),
+  )({
     Fields: {
       key,
+      'Content-Type': contentType,
     },
     Conditions: [
+      { 'Content-Type': contentType },
       ['content-length-range', 0, 30000000], // 30 Mb
     ],
   })
 
-  const YEARS = 60 * 60 * 24 * 365
-
-  const readURL = s3Bucket.getSignedUrl('getObject', {
-    Key: key,
-    Expires: 1000 * YEARS,
-  })
-
   return {
+    readURL: `https://wildsun.netlify.com/.netlify/functions/photo?key=${key}&secret=${STATIC_SECRET_KEY}`,
     presignedPostPayload,
-    readURL,
   }
 }
 
@@ -149,12 +143,13 @@ app.post('*', async (req, res) => {
     /* eslint-disable-next-line no-console */
     console.log('Invalid Form Submission')
     res.status(500)
-    return null
+    res.send('')
+    return
   }
 
 
   if (process.env.NODE_ENV === 'development') {
-    return { statusCode: 200, body: '' }
+    return
   }
 
   await Promise.promisify(upload)(req, res)
@@ -168,6 +163,7 @@ app.post('*', async (req, res) => {
     phoneNumber,
     fullName,
     email,
+    photoContentTypes,
   } = json
 
   const submissionDate = new Date().toISOString()
@@ -179,10 +175,10 @@ app.post('*', async (req, res) => {
   )
 
   /* eslint-disable-next-line no-console */
-  // console.log('Uploading Photos')
-  // const s3PhotoData = await Promise.all(
-  //   photos.map(photo => uploadPhoto(photo, submissionDate)),
-  // )
+  console.log('Creating Photo Upload URLs')
+  const s3PhotoData = await Promise.all(
+    photoContentTypes.map(createPhoto),
+  )
 
   /* eslint-disable-next-line no-console */
   console.log('Connecting to Google Sheets')
@@ -193,10 +189,8 @@ app.post('*', async (req, res) => {
     submissiondate: submissionDate,
     gpscoordinates: coords.join(', '),
     map,
-    // animalphoto: s3PhotoData[0].readURL,
-    // locationphoto: s3PhotoData[1].readURL,
-    animalphoto: 'https://i.pinimg.com/originals/01/c2/9c/01c29c6d963bc2c93893622bc0fd2cc4.jpg',
-    locationphoto: 'https://data.junkee.com/wp-content/uploads/2017/04/Fyre-Festival.jpg',
+    animalphoto: s3PhotoData[0] && s3PhotoData[0].readURL,
+    locationphoto: s3PhotoData[1] && s3PhotoData[1].readURL,
     email,
     fullname: fullName,
     electricalpostnumber: electricalPostNumber,
@@ -253,12 +247,9 @@ app.post('*', async (req, res) => {
 
   /* eslint-disable-next-line no-console */
   console.log('Done')
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      // presignedPostPayloads: s3PhotoData.map(d => d.presignedPostPayload),
-    }),
-  }
+  res.json({
+    presignedPostPayloads: s3PhotoData.map(p => p.presignedPostPayload),
+  })
 })
 
 module.exports.handler = serverless(app)

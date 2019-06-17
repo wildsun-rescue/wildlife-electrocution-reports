@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState } from 'react'
 import { Formik, Form, Field } from 'formik'
 import { fetch } from 'whatwg-fetch'
 
@@ -31,31 +31,75 @@ export default () => {
   const geoLocation = useGeoLocation()
   const [ajaxError, setAjaxError] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [photos, setPhotos] = useState({
-    0: null,
-    1: null,
-  })
+  const [photos, setPhotos] = useState([
+    null,
+    null,
+  ])
 
   const onSubmit = (values, actions) => {
     setAjaxError(false)
-    fetch(SUBMISSION_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...values,
-        photoCount: Object.values(photos).length,
-      }),
-    }).then((response) => {
-      if (response.ok) {
-        setSubmitted(true)
+    Promise.resolve().then(() => (
+      fetch(SUBMISSION_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...values,
+          photoContentTypes: photos.filter(p => p != null).map(photo => (
+            photo.type
+          )),
+        }),
+      })
+    )).then((response) => {
+      if (!response.ok) {
+        throw new Error('Status code error submitting form')
       }
-      setAjaxError(!response.ok)
+      return response.json()
+    }).then(json => Promise.all(
+      json.presignedPostPayloads.map((presignedPostData, index) => {
+        const formData = new FormData()
+        Object.keys(presignedPostData.fields).forEach((key) => {
+          formData.append(key, presignedPostData.fields[key])
+        })
+
+        // console.log(index)
+        const blob = photos.filter(p => p != null)[index]
+
+        // console.log(contentType)
+        // formData.set('content-type', contentType)
+        // Actual file has to be appended last.
+        formData.append('file', blob)
+
+        return fetch(presignedPostData.url, {
+          method: 'POST',
+          body: formData,
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error('Status code error uploading photos')
+          }
+        })
+        // const xhr = new XMLHttpRequest()
+        // xhr.open('POST', presignedPostData.url, true)
+        // xhr.send(formData)
+        // return new Promise((resolve, reject) => {
+        //   xhr.onload = function onLoad() {
+        //     if (this.status === 204) {
+        //       resolve()
+        //     } else {
+        //       reject(this.responseText)
+        //     }
+        //   }
+        // })
+      }),
+    )).then(() => {
+      // setSubmitted(true)
+      setAjaxError(false)
       actions.setSubmitting(false)
-    }).catch(() => {
+    }).catch((e) => {
       setAjaxError(true)
       actions.setSubmitting(false)
+      throw e
     })
   }
 
@@ -80,8 +124,6 @@ export default () => {
       enableReinitialize
       initialValues={{
         coords: geoLocation.coords,
-        // animalPhoto: '',
-        // locationPhoto: '',
         elecricalPostNumber: '',
         nearestLandmark: '',
         species: '',
@@ -97,7 +139,7 @@ export default () => {
         errors,
         // values,
         // isDirty,
-        // isValid,
+        isValid,
         isSubmitting,
         isValidating,
       }) => (
@@ -210,7 +252,7 @@ export default () => {
               color="primary"
               size="large"
               disabled={
-                Object.keys(errors).length > 0 || isSubmitting || isValidating
+                isSubmitting || isValidating
               }
             >
               Submit / Enviar

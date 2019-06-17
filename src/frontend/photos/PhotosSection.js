@@ -83,10 +83,16 @@ export default ({
               <Camera
                 isFullscreen
                 onTakePhoto={(dataUri) => {
-                  setPhotos({
-                    ...photos,
-                    [activeStep]: dataUri
-                  })
+                  const contentType = dataUri.match(/^data:(image\/\w+);/)[1]
+
+                  let file = dataUri.replace(/^data:(.*;base64,)?/, '')
+                  file = Buffer.from(file, 'base64')
+
+                  const blob = new Blob([file], { type: contentType })
+
+                  const nextPhotos = [...photos]
+                  nextPhotos[activeStep] = blob
+                  setPhotos(nextPhotos)
                   if (activeStep < 2) {
                     setActiveStep(activeStep + 1)
                   }
@@ -118,7 +124,7 @@ export default ({
               <div
                 key={index}
                 className={classes.photoPreview}
-                style={{ backgroundImage: photo && `url(${photo}` }}
+                style={{ backgroundImage: photo && `url(${URL.createObjectURL(photo)}` }}
               />
             ))}
           </div>
