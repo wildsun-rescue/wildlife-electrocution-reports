@@ -37,7 +37,7 @@
     "cors": "^2.8.5",
     "deline": "^1.0.4",
     "express": "^4.17.1",
-    "formik": "^1.5.7",
+    "formik": "^1.5.8",
     "formik-material-ui": "^0.0.18",
     "google-spreadsheet": "^2.0.7",
     "isgd": "^1.1.3",
