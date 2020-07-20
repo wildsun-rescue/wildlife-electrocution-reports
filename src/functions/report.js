@@ -283,7 +283,8 @@ app.post('*', async (req, res) => {
             }),
           }).then((pushbulletResponse) => {
             if (!pushbulletResponse.ok) {
-              throw new Error(pushbulletResponse)
+              console.error("Warning: Pushbullet failed to send for " + manager.email)
+              console.error(JSON.stringify(pushbulletResponse))
             }
           }),
         )
